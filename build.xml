@@ -1,0 +1,129 @@
+<?xml version="1.0"?>
+
+<project name="tnets4" default="help">
+
+	<property file="build.properties" />
+
+	<property name="src.java.dir" value="${basedir}/src/main/java" />
+	<property name="src.resources.dir" value="${basedir}/src/main/resources" />
+	<property name="src.web.dir" value="${basedir}/src/main/webapp" />
+
+	<property name="lib.dir" value="${basedir}/lib" />
+	<property name="target.dir" value="${basedir}/target" />
+	<property name="target.web.dir" value="${target.dir}/${application.name}" />
+	<property name="tomcat.deploy.dir" value="${tomcat.home}/webapps" />
+
+	<path id="lib.path">
+		<fileset dir="${basedir}/lib">
+			<include name="**/*.jar" />
+		</fileset>
+	</path>
+
+	<path id="catalina.path">
+		<fileset dir="${tomcat.home}/common/lib">
+			<include name="*.jar" />
+		</fileset>
+	</path>
+
+	<path id="java.runtime">
+		<pathelement location="${java.home}/jre/lib/rt.jar" />
+	</path>
+
+	<path id="base.path">
+		<path refid="lib.path" />
+		<path refid="catalina.path" />
+		<path refid="java.runtime" />
+	</path>
+
+
+	<target name="init">
+		<echo message="todo" />
+	</target>
+
+	<target name="compile" depends="init">
+		<mkdir dir="${target.dir}/classes" />
+		<copy todir="${target.dir}/classes" >
+			<fileset dir="${src.resources.dir}" includes="**/*" />
+		</copy>
+		<javac destdir="${target.dir}/classes">
+			<classpath>
+				<path refid="base.path" />
+			</classpath>
+			<src path="${src.java.dir}" />
+			<src path="${src.resources.dir}" />
+				
+			<exclude name="test/**" />
+		</javac>
+	</target>
+
+
+	<target name="war" depends="compile">
+
+		<mkdir dir="${target.web.dir}" />
+		
+		<copy todir="${target.web.dir}" >
+			<fileset dir="${src.web.dir}/" includes="**/*" />
+		</copy>
+
+		<mkdir dir="${target.web.dir}/WEB-INF" />
+		<copy todir="${target.web.dir}/WEB-INF" >
+			<fileset dir="${src.web.dir}/WEB-INF" includes="**/*" />
+		</copy>
+		
+		<mkdir dir="${target.web.dir}/WEB-INF/lib" />
+		<copy todir="${target.web.dir}/WEB-INF/lib" flatten="true">
+			<fileset dir="${lib.dir}" includes="**/*.jar" />
+		</copy>
+
+		<mkdir dir="${target.web.dir}/WEB-INF/classes" />
+		<copy todir="${target.web.dir}/WEB-INF/classes" >
+			<fileset dir="${target.dir}/classes" includes="**/*" />
+		</copy>
+		
+		<jar jarfile="${target.dir}/${application.name}.war" compress="true" index="true">
+			<fileset dir="${target.web.dir}" includes="**/*" />
+		</jar>
+		
+	</target>
+
+	<target name="deploy" depends="war">
+		<copy todir="${tomcat.deploy.dir}">
+			<fileset dir="${target.dir}" includes="*.war"/>
+		</copy>
+	</target>
+
+
+	<target name="clean" depends="init">
+		<delete dir="${target.dir}" />
+		<delete dir="${tomcat.home}/work" />
+		<delete dir="${tomcat.deploy.dir}/${application.name}" />
+		<delete file="${tomcat.deploy.dir}/${application.name}.war" />
+
+	</target>
+
+	 <target name="explode" depends="compile">	
+		<!-- Copies the exploded mode of web archive to the required directory -->		  	
+		<!-- Copy the required files to the folder to perform build operation -->	  	
+	    <copy todir="${tomcat.deploy.dir}/${application.name}" >
+	     	<fileset dir="${src.web.dir}"/>
+	    </copy>	
+	 	<copy todir="${tomcat.deploy.dir}/${application.name}/WEB-INF/classes" >
+	 		  <fileset dir="${target.dir}/classes"/>
+	   </copy>	
+	  </target>
+	
+	<target name="help" depends="init">
+		<echo message="********************************************************" />
+		<echo message="        ANT Build script for INTERVIEW application" />
+		<echo message="*******************************************************" />
+		<echo message="Build targets as follows:" />
+		<echo message="- init: displays variables used for build" />
+		<echo message="- compile: compiles source files" />
+		<echo message="- war: create war" />
+		<echo message="- deploy: deploys the war file to the server" />
+		<echo message="- clean: deletes build , work and deployed application" />
+		<echo message="- help: displays this message" />
+		<echo message="" />
+	</target>
+
+</project>
